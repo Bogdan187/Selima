@@ -15,6 +15,7 @@
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 
+
 // -------------------- Funktionsdeklarationen für C++/PlatformIO --------------------
 void x_verfahren(int richtung, int zeit_x);
 void z_verfahren(int richtung, int zeit_z);
