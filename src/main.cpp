@@ -5,7 +5,7 @@
 //
 //
 
-/*================================================= Stand der Entwicklung:  Serielle Befehle sind fertig und funktionieren wie erwartet.
+/*Stand der Entwicklung:  Serielle Befehle sind fertig und funktionieren wie erwartet.
                                                     Die Bedienung über den Steuerpult ist auch fertig bis auf:      1. Manueller Modus funktionert einwandfrei                                                                      
                                                                                                                     2. Der Custom Modus (davor Bereich 2) ist gedacht zu befahren einer Waage und mit später noch einer Funktion von dauerbelastungstest  
                                                                                                                     3. Auswahl Waagen ist eine Idee gewesen die sich nicht umgesetzt hat und deswegen wird da noch weiter geschraubt. Der jetzige Stand ist noch sehr "Hard-codiert".
@@ -33,6 +33,7 @@ void serialEvent3();
 void konfiguration_waage_rechts();
 void gewichte_auflegen_rechts();
 void gewichte_auflegen_rechts_exit();
+bool serialCommandHasRequiredLength(char command);
 // -------------------------------------------------------------------------------
 
 
@@ -346,6 +347,9 @@ void setup()
   //--------------------------------------------------------------------
 
   //  Serielle Schnittstelle
+
+  lcd.init();
+  lcd.backlight();
 
   Serial3.begin(9600, SERIAL_8N1);
     // reserve 200 bytes for the inputString:
@@ -1165,8 +1169,23 @@ void serialEvent3()
   {
     // get the new byte:
     char inChar = (char)Serial3.read();
-    // add it to the inputString:
-    inputString += inChar;
+    if (inChar == '\n')
+    {
+      // LF nach CR ignorieren.
+      continue;
+    }
+    // Eingaben begrenzen, damit ein fehlerhafter Sender den Speicher nicht
+    // unkontrolliert mit einem Arduino-String fuellt.
+    if (inputString.length() < 32)
+    {
+      inputString += inChar;
+    }
+    else
+    {
+      inputString = "";
+      stringComplete = false;
+      continue;
+    }
  //   Serial.println(inputString);
     // if the incoming character is a newline, set a flag so the main loop can
     // do something about it:
@@ -1174,6 +1193,23 @@ void serialEvent3()
     {
       stringComplete = true;
     }
+  }
+}
+
+bool serialCommandHasRequiredLength(char command)
+{
+  switch (command)
+  {
+    case 'r': return inputString.length() >= 4;
+    case 'x': return inputString.length() >= 5;
+    case 'n': return inputString.length() >= 3;
+    case 'a': return inputString.length() >= 4;
+    case 'h': return inputString.length() >= 5;
+    case 'o': return inputString.length() >= 4;
+    case 'z': return inputString.length() >= 3;
+    case 'v': return inputString.length() >= 4;
+    case 's': return inputString.length() >= 4;
+    default: return false;
   }
 }
 
@@ -1434,8 +1470,7 @@ void loop()
 {
   // -------------------- Referenzfahrt --------------------
   if ((referenzfahrt_anzeige_0) == true && (referenzfahrt) == true)                 //Standart am Anfang
-  { lcd.init();
-    lcd.backlight();
+  {
     lcd.setCursor(0,0);
     lcd.print("Referenzfahrt");
     lcd.setCursor(0,1);
@@ -1992,8 +2027,10 @@ void loop()
   {
 
     Serial.println(inputString);
-    if (inputString[0] == 'r' || inputString[0] == 'x' || inputString[0] == 'z'
+    if (inputString.length() > 0 && serialCommandHasRequiredLength(inputString[0]) &&
+        (inputString[0] == 'r' || inputString[0] == 'x' || inputString[0] == 'z'
         ||inputString[0] == 'o' ||inputString[0] == 'n' || inputString[0]== 'a' ||inputString[0] == 'h' || inputString[0] == 'v' || inputString[0] == 's')
+       )
     {
       serielle_schnittstelle=true;
       switch (inputString[0])
