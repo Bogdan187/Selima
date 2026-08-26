@@ -1,0 +1,205 @@
+@startuml
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+
+left to right direction
+
+title Selima – Projektstruktur und Abhängigkeiten
+
+package "Build / Entwicklungsumgebungen" {
+  component "Arduino IDE" as ArduinoIDE
+  component "CLion + PlatformIO" as CLionPIO
+  file "Selima_BS.ino\nArduino-Sketchkennung" as INO
+  file "platformio.ini\nMega 2560 / Arduino Framework" as PIO
+}
+
+package "Programmeinstieg" {
+  component "Selima_Main.cpp\n----------------\nsetup()\nloop()" as MAIN
+}
+
+package "Gemeinsame Basis" {
+  component "Config.h\n----------------\nPins\nSchrittwerte\nGrenzen\nKonstanten" as CONFIG
+
+  component "Globals\n----------------\nGlobals.h\nGlobals.cpp\n----------------\nLCD\nStatus-Flags\nPositionen\nGeschwindigkeiten\nSerial-Daten" as GLOBALS
+}
+
+package "Funktionsmodule" {
+
+  component "MotorControl\n----------------\nMotorControl.h\nMotorControl.cpp\n----------------\nX/Z fahren\nPositionsfahrt\nNullpunkt Z\nZ-Bremse" as MOTOR
+
+  component "ReferenceRun\n----------------\nReferenceRun.h\nReferenceRun.cpp\n----------------\nReferenzfahrt X/Z" as REF
+
+  component "MenuControl\n----------------\nMenuControl.h\nMenuControl.cpp\n----------------\nHauptmenü\nManueller Modus" as MENU
+
+  component "Dauerbelastung\n----------------\nDauerbelastung.h\nDauerbelastung.cpp\n----------------\nGewichtsauswahl\nBelastungszyklen" as DAUER
+
+  component "LeftScales\n----------------\nLeftScales.h\nLeftScales.cpp\n----------------\nWaagenauswahl\nLinke Waagen\nGewichte links" as LEFT
+
+  component "RightScale\n----------------\nRightScale.h\nRightScale.cpp\n----------------\nRechte Waage\nCustom Mode\nGewichte rechts" as RIGHT
+
+  component "SerialInterface\n----------------\nSerialInterface.h\nSerialInterface.cpp\n----------------\nSerial3\nBefehle r/x/z/o/n/a/h/v/s" as SERIAL
+
+  component "endschalterTest\n----------------\nendschalterTest.h\nendschalterTest.cpp\n----------------\nEndschalterdiagnose\nTestbewegung Z" as ENDTEST
+}
+
+' ==========================================================
+' Build / Entwicklungsumgebungen
+' ==========================================================
+
+ArduinoIDE --> INO : öffnet Sketch
+
+INO ..> MAIN : gehört zum selben\nArduino-Sketch
+
+CLionPIO --> PIO : Projektkonfiguration
+
+PIO ..> MAIN : kompiliert *.cpp
+PIO ..> MOTOR
+PIO ..> REF
+PIO ..> MENU
+PIO ..> DAUER
+PIO ..> LEFT
+PIO ..> RIGHT
+PIO ..> SERIAL
+PIO ..> ENDTEST
+
+
+' ==========================================================
+' Hauptprogramm / loop()
+' ==========================================================
+
+MAIN --> ENDTEST : endschalterTest()
+
+MAIN --> REF : processReferenceRun()
+
+MAIN --> MENU : processMainMenuAndManualMode()
+
+MAIN --> DAUER : processDauerbelastung()
+
+MAIN --> LEFT : processLeftScaleRun()
+
+MAIN --> SERIAL : processSerialCommands()
+
+MAIN --> MOTOR : processZBrake()
+
+
+' ==========================================================
+' Gemeinsame Basis
+' ==========================================================
+
+MAIN --> CONFIG : Pins / Konstanten
+MAIN --> GLOBALS : gemeinsame Zustände
+
+MOTOR --> CONFIG
+MOTOR --> GLOBALS
+
+REF --> CONFIG
+REF --> GLOBALS
+
+MENU --> CONFIG
+MENU --> GLOBALS
+
+DAUER --> CONFIG
+DAUER --> GLOBALS
+
+LEFT --> CONFIG
+LEFT --> GLOBALS
+
+RIGHT --> CONFIG
+RIGHT --> GLOBALS
+
+SERIAL --> CONFIG
+SERIAL --> GLOBALS
+
+ENDTEST --> CONFIG
+ENDTEST --> GLOBALS
+
+
+' ==========================================================
+' Verbindungen zwischen Funktionsmodulen
+' ==========================================================
+
+REF --> MOTOR : Achsen bewegen
+
+MENU --> MOTOR : manuelles Verfahren
+
+MENU --> LEFT : Waagenauswahl
+
+MENU --> RIGHT : Custom Mode
+
+DAUER --> MOTOR : Z-Positionsfahrten
+
+LEFT --> MOTOR : Waagen anfahren
+
+RIGHT --> MOTOR : rechte Waage anfahren
+
+SERIAL --> MOTOR : Fahrbefehle
+
+ENDTEST --> MOTOR : Motordaten / Bewegung
+
+
+' MotorControl ruft beim Setzen des Nullpunkts
+' die Dauerbelastungsfunktion auf
+MOTOR --> DAUER : nullpunkt_z()\n→ gewichteVerfahren_dauerbelastung()
+
+
+' ==========================================================
+' Erläuterungen
+' ==========================================================
+
+note bottom of MAIN
+
+loop() ruft aktuell nacheinander auf:
+
+1. endschalterTest()
+2. processReferenceRun()
+3. processMainMenuAndManualMode()
+4. processDauerbelastung()
+5. processLeftScaleRun()
+6. processSerialCommands()
+7. processZBrake()
+
+end note
+
+
+note bottom of CONFIG
+
+Config.h enthält feste Werte:
+
+- Pins
+- Schrittwerte
+- Grenzen
+- feste Positionen
+- Konstanten
+
+Es wird keine Config.cpp benötigt.
+
+end note
+
+
+note bottom of GLOBALS
+
+Globals.h:
+Deklariert gemeinsame Variablen mit extern.
+
+Globals.cpp:
+Legt diese Variablen genau einmal an.
+
+Dadurch können alle Module auf gemeinsame
+Positionen, Status-Flags, LCD usw. zugreifen.
+
+end note
+
+
+legend right
+
+|= Pfeil |= Bedeutung |
+| --> | direkter Funktions-/Datenzugriff |
+| ..> | Build-/Projektbeziehung |
+
+endlegend
+
+@enduml
