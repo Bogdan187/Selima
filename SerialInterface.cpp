@@ -29,7 +29,6 @@ void serialEvent3()
       stringComplete = false;
       continue;
     }
- //   Serial.println(inputString);
     // if the incoming character is a newline, set a flag so the main loop can
     // do something about it:
     if (inChar == '\r') 
@@ -41,7 +40,7 @@ void serialEvent3()
 
 bool serialCommandHasRequiredLength(char command)
 {
-  switch (command)
+  switch (command)              //Wie die Länge des eingegebens Wortes Minimal sein darf
   {
     case 'r': return inputString.length() >= 4;
     case 'x': return inputString.length() >= 5;
@@ -112,8 +111,9 @@ void processSerialCommands()
               referenzfahrt_z_vor_x();
 
 
-              // X darf ERST fahren, wenn die komplette
-              // Z-Referenzfahrt abgeschlossen ist
+              /* X darf ERST fahren, wenn die komplette
+              Z-Referenzfahrt abgeschlossen ist*/
+
               if (z_phase_referenzfahrt == 2)
               {
                 x_verfahren_position(speedMotorX, NeuePosx);
@@ -126,11 +126,11 @@ void processSerialCommands()
                 stringComplete = false;
               }
 
-              // WICHTIG:
-              // Wenn z_phase_referenzfahrt noch 0 oder 1 ist,
-              // wird inputString NICHT gelöscht.
-              // Dadurch wird der X-Befehl im nächsten loop()
-              // erneut verarbeitet.
+              /* WICHTIG:
+              Wenn z_phase_referenzfahrt noch 0 oder 1 ist,
+              wird inputString NICHT gelöscht.
+              Dadurch wird der X-Befehl im nächsten loop()
+              erneut verarbeitet.*/
             }
             else
             {

@@ -24,7 +24,7 @@ long hoehe_waage_rechts = 100;
 long x_koordinate_waage_rechts = 1000;
 long abstand_kette_boden = 500;
 int anzahl_scheiben_rechts = 4;
-float gap_scheiben_rechts = 8.0;
+long gap_scheiben_rechts = 8.0;
 long abstand_boden_gewichtskette_max=200;
 
 long position_z_waage_1 = 0;
@@ -50,8 +50,8 @@ int speedMotorReferenzfahrt_X = 1200;
 int speedMotorReferenzfahrtNegativ_X = 700;
 int speedMotorZ = 700;
 int speedMotorReferenzfahrt_Z = 700;
-int speedMotorReferenzfahrtNegativ_Z = 700;
-int speedGewichteAblegen = 1500;
+int speedMotorReferenzfahrtNegativ_Z = 1200;
+int speedGewichteAblegen = 1000;
 
 // -------------------- Status --------------------
 int z_phase = 0;

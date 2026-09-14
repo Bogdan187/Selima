@@ -289,7 +289,7 @@ void processZBrake()
       {
         digitalWrite(motorbremse, LOW);     // Motorbremse aktivieren
         delay(200);
-        digitalWrite(en_z, HIGH);
+        digitalWrite(en_z, HIGH);         //Motortreiber Stromlos machen
 
         zStart = 0;
       }

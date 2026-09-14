@@ -26,7 +26,7 @@ extern long hoehe_waage_rechts;
 extern long x_koordinate_waage_rechts;
 extern long abstand_kette_boden;
 extern int anzahl_scheiben_rechts;
-extern float gap_scheiben_rechts;
+extern long gap_scheiben_rechts;
 extern long position_offset_schritte;
 
 extern long position_z_waage_1;
